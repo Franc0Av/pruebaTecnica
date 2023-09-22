@@ -37,7 +37,7 @@ export default{
     },
 
     async consultarIdContrato() {
-      var response = await dataServices.getContractId(this.idContrato.valueOf);
+      var response = await dataServices.getContractId(this.idContrato);
       this.contratoConsultado = response.data;
     },
     // async consultarIdColegio() {
