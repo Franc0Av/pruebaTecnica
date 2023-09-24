@@ -4,32 +4,36 @@ export default {
 
    getOrders(){
 
-    return api().get('/api/Pedidos')
+    return api().get('/api/Pedidos');
 
    },
 
    getContracts(){
 
-    return api().get('/api/Contratos')
+    return api().get('/api/Contratos');
     
    },
 
    getProductsDetails(){
 
-      return api().get('/api/DetalleProductos')
+      return api().get('/api/DetalleProductos');
 
    },
 
    getOrderId(id){
-      return api().get(`/api/Pedidos/${id}`)
+      return api().get(`/api/Pedidos/${id}`);
    },
 
-   getContractId(string) {
-      return api().get(`/api/Contratos/${string}`);
+   getOrderByContractId(id){
+      return api().get(`/api/Pedidos/porContrato/${id}`);
+   },
+
+   getContractId(id) {
+      return api().get(`/api/Contratos/${id}`);
     },
 
-    getProductoId(string) {
-      return api().get(`/api/DetalleProductos/${string}`);
+    getProductId(id) {
+      return api().get(`/api/DetalleProductos/${id}`);
     }
         
     

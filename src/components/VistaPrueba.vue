@@ -8,12 +8,12 @@ export default{
   data(){
     return{
       pedidos: [],
-      contratos: [],
+      contratos: {},
       productos: [],
+      pedidoConsultado: [],
       idContrato: '',
       idPedido: '',
-      idProducto: '',
-      pedidoConsultado: [],
+      idProducto: [],
       contratoConsultado: [],
       productoConsultado: [],
 
@@ -22,12 +22,13 @@ export default{
   methods: {
     async getOrders () {
       var response = await dataServices.getOrders()
-      this.colegios = response.data
-      console.log(this.colegios)
+      this.pedidos = response.data
+      console.log(this.pedidos)
     },
     async getContracts () {
       var response = await dataServices.getContracts()
       this.contratos = response.data
+      this.idContrato = this.contratos.id
       console.log(this.contratos)
     },
     async getProductsDetails () {
@@ -37,63 +38,123 @@ export default{
     },
 
     async consultarIdContrato() {
-      var response = await dataServices.getContractId(this.idContrato);
-      this.contratoConsultado = response.data;
-    },
-    // async consultarIdColegio() {
-    //   var response = await dataServices.getColegioId(this.idColegio);
-    //   this.idColegio = response.data;
-    //   var dataField = this.getColegioId(this.idContrato);
-    //   this.colegioConsultado = dataField.data
-    // },
-    // async consultarIdProducto(){
-    //   var response = await dataServices.getProductoId(this.idProducto);
-    //   this.productoConsultado = response.data;
-    // }
 
+      var response = await dataServices.getContractId(this.idContrato)
+      this.contratoConsultado = response.data
+
+      var idResponse = await dataServices.getOrderByContractId(this.idContrato)
+      this.pedidoConsultado = idResponse.data
+
+        if (this.pedidoConsultado.length > 0) {
+
+            this.idProducto = []
+            this.pedidoConsultado.forEach(item => {
+              if (item.itemId) {
+
+                this.idProducto.push(item.itemId)
+                this.getDetails()
+              }
+            });
+
+            //this.getDetails()
+
+        } else {
+          this.idProducto = null;
+        }
+      
+      console.log(this.idContrato)
+      console.log(this.contratoConsultado)
+      console.log(this.pedidoConsultado)
+      console.log(this.idProducto)
+      console.log(this.productoConsultado)
+    },
+
+    async getDetails() {
+
+      if(this.idProducto.length === 1){
+
+        var response = await dataServices.getProductId(this.idProducto);
+        this.productoConsultado = response.data
+
+      }
+      
+    }
 
   },
   created () {
-    this.getOrders(),
-    this.getContracts(),
-    this.getProductsDetails()
+    //this.getOrders(),
+    //this.getContracts(),
+    //this.getProductsDetails()
     
   }
 }
 
-// function listarPorId(id){
-//   id = getColegios(this.idColegio)
-// }
 
 </script>
 
 <template>
-<div class="d-flex justify-content-center mt-2">
-    <input v-model="idContrato" class="form-control w-25" type="text" placeholder="Ingrese id de contrato...">
-    <button @click="consultarIdContrato" class="btn btn-primary">Consultar</button>
-</div>
-<br>
-<div class="d-flex justify-content-center" style="background-color: gray;">
-  <ul v-for="contrato in contratoConsultado" :key="contrato" class="w-50">
-    <li>Código de curso: {{ contrato.courseCode }}</li>
-    <li>Fecha de alta: {{ contrato.fechaAlta }}</li>
-    <li>Colegio: {{ contrato.colegioNombre }}</li>
-    <li>Nivel: {{ contrato.colegioNivel }}</li>
-    <li>Curso: {{ contrato.colegioCurso }}</li>
-    <li>Localidad: {{ contrato.colegioLocalidad }}</li>
-    <li>---Pedido--- </li>
-    <li>Cantidad: {{ contrato.cantidadEgresados }}</li>
-  </ul>
-  <!-- <ul v-for="producto in productoConsultado" :key="producto">
-    <li>Artículo: {{ producto.nombre }}</li>
-    <li>Precio Unitario: {{ producto.precio }}</li>
-  </ul> -->
-</div>
-<!-- <div class="d-flex justify-content-center" style="background-color: aquamarine">
-  <ul v-for="contrato in contratoConsultado" :key="contrato" class="w-50">
-   
-  </ul>
-</div> -->
 
+<div class="grid">
+  <form @submit.prevent="consultarIdContrato">
+  <div class="inputs-grid">
+    <input v-model="idContrato" class="form-control w-25" type="text" placeholder="Ingrese id de contrato..." required>
+    <button type="submit" class="btn btn-outline-primary rounded-pill btn-lg bi bi-search"> Buscar </button>
+  </div>
+</form>
+  <div class="data-grid">
+    <div>Código de curso: {{ contratoConsultado.courseCode }}</div>
+    <div>Fecha de alta: {{ contratoConsultado.fechaAlta }}</div>
+    <div>Colegio: {{ contratoConsultado.colegioNombre }}</div>
+    <div>Nivel: {{ contratoConsultado.colegioNivel }}</div>
+    <div>Curso: {{ contratoConsultado.colegioCurso }}</div>
+    <div>Localidad: {{ contratoConsultado.colegioLocalidad }}</div>
+    <div class="order-grid">
+      --PEDIDOS--
+      <div>Cantidad: {{ contratoConsultado.cantidadEgresados }} </div>
+      <div>Artículo: {{ productoConsultado.nombre }} </div>
+      <div>Precio unitario: {{ productoConsultado.precio }} </div>
+      <div>Total: $ {{ (parseFloat(productoConsultado.precio) * parseFloat(contratoConsultado.cantidadEgresados)).toFixed(2) }}</div>
+    </div>
+    <div> Importe total: ${{ contratoConsultado.total }}</div>
+    <div>Fecha de entrega: {{ contratoConsultado.fechaEntrega }} </div>
+  </div>
+</div>
   
 </template>
+
+<style>
+
+  .data-grid{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1em;
+  }
+
+  .data-grid div{
+    border: 1px solid black;
+    border-radius: 15px;
+  }
+
+  .order-grid{
+    display: grid;
+    grid-row: 2/4;
+    height: auto;
+    gap: 1em;
+  }
+
+  .inputs-grid{
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+  }
+
+  .grid div{
+    padding: 1em;
+    
+    
+  }
+
+  .grid div:hover{
+    border: 1px solid yellow;
+  }
+</style>
